@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="navy_950">#071A2B</color>
+    <color name="blue_700">#075FA8</color>
+    <color name="blue_600">#0B75C9</color>
+    <color name="sky_50">#F1F9FF</color>
+    <color name="white">#FFFFFF</color>
+    <color name="ink">#13212C</color>
+    <color name="slate_600">#51606C</color>
+    <color name="slate_100">#E8EEF2</color>
+    <color name="success">#167A4B</color>
+    <color name="success_bg">#E4F5EC</color>
+    <color name="premium">#7B4A00</color>
+    <color name="premium_bg">#FFF0CE</color>
+    <color name="warning">#A33A2B</color>
+    <color name="warning_bg">#FCE9E6</color>
+</resources>

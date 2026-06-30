@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Lector de vuelos</string>
+    <string name="scanner_title">Escanear hoja de vuelos</string>
+    <string name="scan_intro_title">Escaneo de alta precisión</string>
+    <string name="scan_intro_body">Captura la hoja completa. El escáner corregirá el encuadre y después analizará el documento por zonas para leer las matrículas pequeñas.</string>
+    <string name="scan_tip_light">✓ Usa luz uniforme y evita reflejos sobre el papel.</string>
+    <string name="scan_tip_page">✓ Incluye los cuatro bordes de la hoja en la imagen.</string>
+    <string name="scan_tip_review">✓ Revisa el recorte antes de confirmar el escaneo.</string>
+    <string name="start_scan">Escanear hoja</string>
+    <string name="preparing_scanner">Preparando el escáner…</string>
+    <string name="analyzing_sheet">Analizando la hoja…</string>
+    <string name="analyzing_with_ai">Leyendo todas las matrículas con IA visual…</string>
+    <string name="ai_fallback_local">Servicio de IA no disponible. Probando el reconocimiento local…</string>
+    <string name="analyzing_progress">Analizando zona %1$d de %2$d…</string>
+    <string name="scan_no_page">No se recibió ninguna página escaneada.</string>
+    <string name="scanner_start_error">No se pudo abrir el escáner. Comprueba Google Play Services e inténtalo de nuevo.</string>
+    <string name="ocr_document_error">No se pudo analizar la hoja. Repite el escaneo con más luz.</string>
+    <string name="results_title">Matrículas leídas</string>
+    <string name="results_body">Comprueba y corrige cualquier matrícula antes de continuar.</string>
+    <string name="empty_results">No se ha reconocido ninguna matrícula. Puedes volver a escanear o añadirla manualmente.</string>
+    <string name="empty_results_text_detected">La hoja contiene texto legible, pero no se encontró ninguna matrícula del catálogo. Prueba otro recorte o añádela manualmente.</string>
+    <string name="empty_results_no_text">El OCR no ha detectado texto legible. Repite la captura más cerca, con la hoja plana y luz uniforme.</string>
+    <string name="add_registration">Añadir matrícula</string>
+    <string name="scan_again">Volver a escanear</string>
+    <string name="registration_hint">Matrícula</string>
+    <string name="delete_registration">Eliminar matrícula</string>
+    <string name="crop_column_title">Marca la columna de matrículas</string>
+    <string name="crop_column_body">Mueve y ajusta el rectángulo para incluir únicamente la columna donde aparecen EC-NFM, ECNFM, etc. Evita otras columnas siempre que sea posible.</string>
+    <string name="crop_column_image_description">Hoja escaneada con zona de matrículas seleccionable</string>
+    <string name="cancel_crop">Cancelar</string>
+    <string name="analyze_selected_column">Leer matrículas</string>
+    <string name="loading_scanned_page">Preparando la fotografía…</string>
+    <string name="analyzing_column">Leyendo únicamente la columna seleccionada…</string>
+    <string name="crop_load_error">No se pudo preparar la fotografía. Vuelve a escanearla.</string>
+    <string name="crop_invalid">Ajusta el rectángulo sobre la columna de matrículas.</string>
+</resources>
