@@ -22,6 +22,7 @@
     <string name="empty_results_text_detected">La hoja contiene texto legible, pero no se encontró ninguna matrícula del catálogo. Prueba otro recorte o añádela manualmente.</string>
     <string name="empty_results_no_text">El OCR no ha detectado texto legible. Repite la captura más cerca, con la hoja plana y luz uniforme.</string>
     <string name="add_registration">Añadir matrícula</string>
+    <string name="confirm_registrations">Confirmar matrículas</string>
     <string name="scan_again">Volver a escanear</string>
     <string name="registration_hint">Matrícula</string>
     <string name="delete_registration">Eliminar matrícula</string>
@@ -34,4 +35,25 @@
     <string name="analyzing_column">Leyendo únicamente la columna seleccionada…</string>
     <string name="crop_load_error">No se pudo preparar la fotografía. Vuelve a escanearla.</string>
     <string name="crop_invalid">Ajusta el rectángulo sobre la columna de matrículas.</string>
+    <string name="confirm_empty_results">Añade al menos una matrícula antes de confirmar.</string>
+    <string name="confirm_invalid_registrations">Hay matrículas que no están en el catálogo. Corrígelas antes de continuar.</string>
+    <string name="summary_title">Mantas necesarias</string>
+    <string name="summary_body">Resumen calculado con las matrículas confirmadas, incluyendo avión y bodega.</string>
+    <string name="summary_aircraft_count">Aviones confirmados: %1$d</string>
+    <string name="summary_change_impact">Mantas ya usadas en salidas retiradas: %1$d turista, %2$d gordas, %3$d toppers\nTotal real de jornada: %4$d turista, %5$d gordas, %6$d toppers\nJaulas del total real: %7$d turista, %8$d gordas, %9$d toppers</string>
+    <string name="summary_blankets_title">Total de mantas de salidas actuales</string>
+    <string name="summary_cages_title">Total de jaulas de salidas actuales</string>
+    <string name="summary_remaining_blankets_title">Mantas restantes</string>
+    <string name="summary_remaining_cages_title">Jaulas restantes</string>
+    <string name="summary_tracking_title">Seguimiento de aviones</string>
+    <string name="summary_tracking_body">Marca por separado el avión y la bodega cuando ya estén vestidos.</string>
+    <string name="tracking_aircraft">Avión</string>
+    <string name="tracking_hold">Bodega</string>
+    <string name="summary_tourist_label">Turista</string>
+    <string name="summary_thick_label">Gordas</string>
+    <string name="summary_toppers_label">Toppers</string>
+    <string name="summary_blankets_value">%1$d mantas</string>
+    <string name="summary_cages_value">%1$d jaulas</string>
+    <string name="edit_registrations">Volver a Matrículas leídas</string>
+    <string name="new_scan">Nuevo escaneo</string>
 </resources>

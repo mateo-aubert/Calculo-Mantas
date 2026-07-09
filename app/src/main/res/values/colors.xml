@@ -10,6 +10,8 @@
     <color name="slate_100">#E8EEF2</color>
     <color name="success">#167A4B</color>
     <color name="success_bg">#E4F5EC</color>
+    <color name="model_900">#075FA8</color>
+    <color name="model_900_bg">#E2F1FF</color>
     <color name="premium">#7B4A00</color>
     <color name="premium_bg">#FFF0CE</color>
     <color name="warning">#A33A2B</color>

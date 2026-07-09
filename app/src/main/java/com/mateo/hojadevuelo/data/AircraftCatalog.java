@@ -32,7 +32,7 @@ public final class AircraftCatalog {
     public static final String CATEGORY_UNKNOWN = "No encontrada";
 
     private static final Set<String> PREMIUM_REGISTRATIONS = Collections.unmodifiableSet(
-            new HashSet<>(Arrays.asList("EC-NXA", "EC-NVZ", "EC-NZG")));
+            new HashSet<>(Arrays.asList("EC-NXA", "EC-NVZ", "EC-NZG", "EC-OGY")));
     private static final Pattern REGISTRATION_PATTERN =
             Pattern.compile("^EC[-\\s]?([A-Z0-9]{3})$");
 
@@ -40,6 +40,15 @@ public final class AircraftCatalog {
 
     private AircraftCatalog(Map<String, Aircraft> aircraftByRegistration) {
         this.aircraftByRegistration = Collections.unmodifiableMap(aircraftByRegistration);
+    }
+
+    static AircraftCatalog fromModels(Map<String, String> modelByRegistration) {
+        Map<String, Aircraft> entries = new LinkedHashMap<>();
+        for (Map.Entry<String, String> entry : modelByRegistration.entrySet()) {
+            String registration = normalizeRegistration(entry.getKey());
+            entries.put(registration, new Aircraft(registration, entry.getValue()));
+        }
+        return new AircraftCatalog(entries);
     }
 
     public static AircraftCatalog load(Context context) {

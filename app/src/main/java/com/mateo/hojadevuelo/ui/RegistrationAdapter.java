@@ -7,6 +7,7 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Filter;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
@@ -46,7 +47,7 @@ public final class RegistrationAdapter
         ItemRegistrationBinding binding = ItemRegistrationBinding.inflate(
                 LayoutInflater.from(parent.getContext()), parent, false);
         RegistrationViewHolder holder = new RegistrationViewHolder(binding);
-        ArrayAdapter<String> dropdownAdapter = new ArrayAdapter<>(
+        ArrayAdapter<String> dropdownAdapter = new UnfilteredArrayAdapter(
                 context,
                 android.R.layout.simple_dropdown_item_1line,
                 suggestions);
@@ -117,6 +118,7 @@ public final class RegistrationAdapter
 
             binding.registrationInput.setOnFocusChangeListener((view, hasFocus) -> {
                 if (hasFocus) {
+                    binding.registrationInput.showDropDown();
                     return;
                 }
                 int position = getBindingAdapterPosition();
@@ -174,10 +176,46 @@ public final class RegistrationAdapter
             } else if (AircraftCatalog.CATEGORY_UNKNOWN.equals(category)) {
                 binding.categoryBadge.setTextColor(ContextCompat.getColor(context, R.color.warning));
                 binding.categoryBadge.setBackgroundResource(R.drawable.bg_badge_invalid);
+            } else if (AircraftCatalog.CATEGORY_900.equals(category)) {
+                binding.categoryBadge.setTextColor(ContextCompat.getColor(context, R.color.model_900));
+                binding.categoryBadge.setBackgroundResource(R.drawable.bg_badge_900);
             } else {
                 binding.categoryBadge.setTextColor(ContextCompat.getColor(context, R.color.success));
                 binding.categoryBadge.setBackgroundResource(R.drawable.bg_badge_valid);
             }
+        }
+    }
+
+    private static final class UnfilteredArrayAdapter extends ArrayAdapter<String> {
+        private final List<String> items;
+
+        private UnfilteredArrayAdapter(Context context, int resource, List<String> items) {
+            super(context, resource, items);
+            this.items = items;
+        }
+
+        @NonNull
+        @Override
+        public Filter getFilter() {
+            return new Filter() {
+                @Override
+                protected FilterResults performFiltering(CharSequence constraint) {
+                    FilterResults results = new FilterResults();
+                    results.values = items;
+                    results.count = items.size();
+                    return results;
+                }
+
+                @Override
+                protected void publishResults(CharSequence constraint, FilterResults results) {
+                    notifyDataSetChanged();
+                }
+
+                @Override
+                public CharSequence convertResultToString(Object resultValue) {
+                    return resultValue == null ? "" : resultValue.toString();
+                }
+            };
         }
     }
 }
