@@ -105,7 +105,8 @@ p {
 }
 
 textarea,
-select {
+select,
+.file-input {
   width: 100%;
   border: 1px solid #d7e2ea;
   border-radius: 14px;
@@ -123,6 +124,31 @@ textarea {
 select {
   min-height: 46px;
   padding: 0 12px;
+}
+
+.file-input {
+  padding: 12px;
+}
+
+.status-text,
+.hint {
+  margin: 10px 0 0;
+  color: var(--slate);
+  font-size: 14px;
+}
+
+.scan-workspace {
+  margin-top: 16px;
+}
+
+.scan-canvas {
+  width: 100%;
+  max-height: 58vh;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #061827;
+  touch-action: none;
+  object-fit: contain;
 }
 
 button {

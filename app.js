@@ -43,6 +43,10 @@ const defaultState = {
 };
 
 let state = loadState();
+let scanImage = null;
+let scanCrop = null;
+let draggingCrop = false;
+let ocrSessionPromise = null;
 
 const elements = {
   bulkInput: document.querySelector("#bulkInput"),
@@ -62,6 +66,12 @@ const elements = {
   remainingCages: document.querySelector("#remainingCages"),
   trackingList: document.querySelector("#trackingList"),
   resetDayButton: document.querySelector("#resetDayButton"),
+  imageInput: document.querySelector("#imageInput"),
+  ocrStatus: document.querySelector("#ocrStatus"),
+  scanWorkspace: document.querySelector("#scanWorkspace"),
+  scanCanvas: document.querySelector("#scanCanvas"),
+  readColumnButton: document.querySelector("#readColumnButton"),
+  clearImageButton: document.querySelector("#clearImageButton"),
   draftRowTemplate: document.querySelector("#draftRowTemplate"),
   trackingRowTemplate: document.querySelector("#trackingRowTemplate"),
 };
@@ -111,6 +121,417 @@ function bindEvents() {
     persist();
     render();
   });
+
+  elements.imageInput.addEventListener("change", () => {
+    const file = elements.imageInput.files?.[0];
+    if (file) loadImageFile(file);
+  });
+
+  elements.clearImageButton.addEventListener("click", () => {
+    scanImage = null;
+    scanCrop = null;
+    elements.imageInput.value = "";
+    elements.scanWorkspace.classList.add("hidden");
+    setOcrStatus("Foto quitada. Puedes importar otra hoja.");
+  });
+
+  elements.readColumnButton.addEventListener("click", () => {
+    readSelectedColumn();
+  });
+
+  elements.scanCanvas.addEventListener("pointerdown", startCropDrag);
+  elements.scanCanvas.addEventListener("pointermove", moveCropDrag);
+  elements.scanCanvas.addEventListener("pointerup", endCropDrag);
+  elements.scanCanvas.addEventListener("pointercancel", endCropDrag);
+}
+
+async function loadImageFile(file) {
+  setOcrStatus("Preparando fotografía…");
+  try {
+    const bitmap = await createImageBitmap(file);
+    scanImage = bitmap;
+    scanCrop = defaultCrop(bitmap.width, bitmap.height);
+    elements.scanWorkspace.classList.remove("hidden");
+    drawScanCanvas();
+    setOcrStatus("Foto lista. Marca la columna de matrículas y pulsa “Leer matrículas”.");
+  } catch {
+    setOcrStatus("No se pudo abrir la imagen. Prueba con otra fotografía.");
+  }
+}
+
+function defaultCrop(width, height) {
+  return {
+    x: Math.round(width * 0.36),
+    y: Math.round(height * 0.12),
+    width: Math.round(width * 0.26),
+    height: Math.round(height * 0.76),
+  };
+}
+
+function drawScanCanvas() {
+  if (!scanImage || !scanCrop) return;
+  const canvas = elements.scanCanvas;
+  const maxWidth = Math.min(980, document.body.clientWidth - 28);
+  const scale = Math.min(1, maxWidth / scanImage.width);
+  canvas.width = Math.round(scanImage.width * scale);
+  canvas.height = Math.round(scanImage.height * scale);
+  const context = canvas.getContext("2d");
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  context.drawImage(scanImage, 0, 0, canvas.width, canvas.height);
+
+  const rect = toCanvasRect(scanCrop);
+  context.save();
+  context.fillStyle = "rgba(0, 0, 0, 0.52)";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.clearRect(rect.x, rect.y, rect.width, rect.height);
+  context.strokeStyle = "#FFFFFF";
+  context.lineWidth = 3;
+  context.strokeRect(rect.x, rect.y, rect.width, rect.height);
+  context.fillStyle = "#0B75C9";
+  context.fillRect(rect.x + rect.width - 18, rect.y + rect.height - 18, 18, 18);
+  context.restore();
+}
+
+function toCanvasRect(rect) {
+  const canvas = elements.scanCanvas;
+  const scaleX = canvas.width / scanImage.width;
+  const scaleY = canvas.height / scanImage.height;
+  return {
+    x: rect.x * scaleX,
+    y: rect.y * scaleY,
+    width: rect.width * scaleX,
+    height: rect.height * scaleY,
+  };
+}
+
+function canvasPoint(event) {
+  const bounds = elements.scanCanvas.getBoundingClientRect();
+  return {
+    x: ((event.clientX - bounds.left) / bounds.width) * scanImage.width,
+    y: ((event.clientY - bounds.top) / bounds.height) * scanImage.height,
+  };
+}
+
+function startCropDrag(event) {
+  if (!scanImage) return;
+  draggingCrop = true;
+  elements.scanCanvas.setPointerCapture(event.pointerId);
+  const start = canvasPoint(event);
+  scanCrop = { x: start.x, y: start.y, width: 1, height: 1 };
+  drawScanCanvas();
+}
+
+function moveCropDrag(event) {
+  if (!draggingCrop || !scanImage || !scanCrop) return;
+  const point = canvasPoint(event);
+  const x1 = Math.max(0, Math.min(scanImage.width, scanCrop.x));
+  const y1 = Math.max(0, Math.min(scanImage.height, scanCrop.y));
+  const x2 = Math.max(0, Math.min(scanImage.width, point.x));
+  const y2 = Math.max(0, Math.min(scanImage.height, point.y));
+  scanCrop = {
+    x: Math.min(x1, x2),
+    y: Math.min(y1, y2),
+    width: Math.max(1, Math.abs(x2 - x1)),
+    height: Math.max(1, Math.abs(y2 - y1)),
+  };
+  drawScanCanvas();
+}
+
+function endCropDrag(event) {
+  if (!draggingCrop) return;
+  draggingCrop = false;
+  try {
+    elements.scanCanvas.releasePointerCapture(event.pointerId);
+  } catch {
+    // Some browsers release capture automatically.
+  }
+  drawScanCanvas();
+}
+
+async function readSelectedColumn() {
+  if (!scanImage || !scanCrop || scanCrop.width < 20 || scanCrop.height < 20) {
+    setOcrStatus("Marca un recorte válido sobre la columna de matrículas.");
+    return;
+  }
+
+  elements.readColumnButton.disabled = true;
+  setOcrStatus("Cargando OCR local… puede tardar unos segundos la primera vez.");
+  try {
+    const session = await getOcrSession();
+    const columnCanvas = cropImageToCanvas(scanImage, scanCrop);
+    const rows = segmentRows(columnCanvas);
+    if (rows.length === 0) {
+      setOcrStatus("No encontré filas claras en el recorte. Ajusta mejor la columna o añade las matrículas manualmente.");
+      return;
+    }
+
+    setOcrStatus(`Analizando ${rows.length} filas…`);
+    const detected = [];
+    for (const row of rows) {
+      const registration = await recognizeRow(session, columnCanvas, row);
+      if (registration && !detected.includes(registration)) {
+        detected.push(registration);
+      }
+    }
+
+    if (detected.length === 0) {
+      setOcrStatus("El OCR no pudo confirmar matrículas. Puedes pegarlas o añadirlas manualmente.");
+      return;
+    }
+
+    state.draft = detected;
+    persist();
+    render();
+    setOcrStatus(`Lectura completada: ${detected.join(", ")}. Revisa y confirma cambios de salida.`);
+    document.querySelector("#draftList")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  } catch (error) {
+    console.error(error);
+    setOcrStatus("No se pudo ejecutar el OCR web en este navegador. La parte manual sigue disponible.");
+  } finally {
+    elements.readColumnButton.disabled = false;
+  }
+}
+
+function setOcrStatus(message) {
+  elements.ocrStatus.textContent = message;
+}
+
+async function getOcrSession() {
+  if (ocrSessionPromise) return ocrSessionPromise;
+  ocrSessionPromise = (async () => {
+    if (!globalThis.ort) {
+      throw new Error("ONNX Runtime Web no está cargado.");
+    }
+    globalThis.ort.env.wasm.wasmPaths =
+      "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/";
+    return globalThis.ort.InferenceSession.create("models/ppocrv6_tiny_rec.onnx", {
+      executionProviders: ["wasm"],
+      graphOptimizationLevel: "all",
+    });
+  })();
+  return ocrSessionPromise;
+}
+
+function cropImageToCanvas(image, crop) {
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(crop.width));
+  canvas.height = Math.max(1, Math.round(crop.height));
+  const context = canvas.getContext("2d", { willReadFrequently: true });
+  context.drawImage(
+    image,
+    crop.x,
+    crop.y,
+    crop.width,
+    crop.height,
+    0,
+    0,
+    canvas.width,
+    canvas.height,
+  );
+  return canvas;
+}
+
+function segmentRows(canvas) {
+  const context = canvas.getContext("2d", { willReadFrequently: true });
+  const { data, width, height } = context.getImageData(0, 0, canvas.width, canvas.height);
+  const projection = new Array(height).fill(0);
+
+  for (let y = 0; y < height; y += 1) {
+    let count = 0;
+    for (let x = 0; x < width; x += 1) {
+      const offset = (y * width + x) * 4;
+      const gray = data[offset] * 0.299 + data[offset + 1] * 0.587 + data[offset + 2] * 0.114;
+      if (gray < 215) count += 1;
+    }
+    projection[y] = count > width * 0.78 ? 0 : count;
+  }
+
+  const smoothed = projection.map((_, index) => {
+    let total = 0;
+    let samples = 0;
+    for (let delta = -2; delta <= 2; delta += 1) {
+      const y = index + delta;
+      if (y >= 0 && y < height) {
+        total += projection[y];
+        samples += 1;
+      }
+    }
+    return total / samples;
+  });
+
+  const threshold = Math.max(3, width * 0.012);
+  const runs = [];
+  let start = -1;
+  for (let y = 0; y < height; y += 1) {
+    if (smoothed[y] >= threshold && start < 0) start = y;
+    if ((smoothed[y] < threshold || y === height - 1) && start >= 0) {
+      const end = smoothed[y] < threshold ? y - 1 : y;
+      if (end - start >= 5) runs.push({ y: start, height: end - start + 1 });
+      start = -1;
+    }
+  }
+
+  const merged = [];
+  for (const run of runs) {
+    const previous = merged[merged.length - 1];
+    if (previous && run.y - (previous.y + previous.height) < 5) {
+      previous.height = run.y + run.height - previous.y;
+    } else {
+      merged.push({ ...run });
+    }
+  }
+
+  return merged
+    .map((run) => ({
+      y: Math.max(0, run.y - 10),
+      height: Math.min(height - Math.max(0, run.y - 10), run.height + 20),
+    }))
+    .filter((run) => run.height >= 10);
+}
+
+async function recognizeRow(session, columnCanvas, row) {
+  const rowCanvas = cropRowByInk(columnCanvas, row);
+  if (!rowCanvas) return null;
+  const { tensor, width } = rowToTensor(rowCanvas);
+  const inputName = session.inputNames[0];
+  const outputName = session.outputNames[0];
+  const outputs = await session.run({ [inputName]: tensor });
+  const output = outputs[outputName];
+  const winner = bestCatalogCandidate(output.data, output.dims);
+  return winner?.registration ?? null;
+}
+
+function cropRowByInk(canvas, row) {
+  const context = canvas.getContext("2d", { willReadFrequently: true });
+  const image = context.getImageData(0, row.y, canvas.width, row.height);
+  let minX = canvas.width;
+  let maxX = 0;
+  for (let y = 0; y < row.height; y += 1) {
+    for (let x = 0; x < canvas.width; x += 1) {
+      const offset = (y * canvas.width + x) * 4;
+      const gray =
+        image.data[offset] * 0.299 + image.data[offset + 1] * 0.587 + image.data[offset + 2] * 0.114;
+      if (gray < 215) {
+        minX = Math.min(minX, x);
+        maxX = Math.max(maxX, x);
+      }
+    }
+  }
+  if (maxX <= minX) return null;
+  minX = Math.max(0, minX - 8);
+  maxX = Math.min(canvas.width - 1, maxX + 8);
+
+  const crop = document.createElement("canvas");
+  crop.width = maxX - minX + 1;
+  crop.height = row.height;
+  crop
+    .getContext("2d", { willReadFrequently: true })
+    .drawImage(canvas, minX, row.y, crop.width, crop.height, 0, 0, crop.width, crop.height);
+  return crop;
+}
+
+function rowToTensor(rowCanvas) {
+  const targetHeight = 48;
+  const targetWidth = Math.max(32, Math.min(640, Math.round((rowCanvas.width * targetHeight) / rowCanvas.height)));
+  const canvas = document.createElement("canvas");
+  canvas.width = targetWidth;
+  canvas.height = targetHeight;
+  const context = canvas.getContext("2d", { willReadFrequently: true });
+  context.fillStyle = "#ffffff";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.drawImage(rowCanvas, 0, 0, targetWidth, targetHeight);
+  const { data } = context.getImageData(0, 0, targetWidth, targetHeight);
+  const input = new Float32Array(1 * 3 * targetHeight * targetWidth);
+  const plane = targetHeight * targetWidth;
+
+  for (let y = 0; y < targetHeight; y += 1) {
+    for (let x = 0; x < targetWidth; x += 1) {
+      const pixel = (y * targetWidth + x) * 4;
+      const index = y * targetWidth + x;
+      input[index] = data[pixel + 2] / 127.5 - 1; // B
+      input[plane + index] = data[pixel + 1] / 127.5 - 1; // G
+      input[plane * 2 + index] = data[pixel] / 127.5 - 1; // R
+    }
+  }
+
+  return {
+    tensor: new globalThis.ort.Tensor("float32", input, [1, 3, targetHeight, targetWidth]),
+    width: targetWidth,
+  };
+}
+
+function bestCatalogCandidate(logits, dims) {
+  const timeSteps = dims[1];
+  const classes = dims[2];
+  const candidates = CATALOG.map((item) => normalizeRegistration(item.registration).replace("-", ""));
+  const scores = candidates.map((compact) => ({
+    compact,
+    registration: `EC-${compact.slice(2)}`,
+    score: ctcScore(logits, timeSteps, classes, compact),
+  }));
+  scores.sort((a, b) => b.score - a.score);
+  const best = scores[0];
+  const second = scores[1];
+  if (!best || !Number.isFinite(best.score)) return null;
+  if (second && best.score - second.score < 0.18) return null;
+  return best;
+}
+
+function ctcScore(logits, timeSteps, classes, compact) {
+  const labels = [];
+  for (const char of compact) labels.push(charIndex(char));
+  const extended = [0];
+  for (const label of labels) extended.push(label, 0);
+
+  let previous = new Float64Array(extended.length).fill(Number.NEGATIVE_INFINITY);
+  previous[0] = logProb(logits, 0, classes, extended[0]);
+  if (extended.length > 1) previous[1] = logProb(logits, 0, classes, extended[1]);
+
+  for (let time = 1; time < timeSteps; time += 1) {
+    const current = new Float64Array(extended.length).fill(Number.NEGATIVE_INFINITY);
+    for (let stateIndex = 0; stateIndex < extended.length; stateIndex += 1) {
+      let value = previous[stateIndex];
+      if (stateIndex > 0) value = logAdd(value, previous[stateIndex - 1]);
+      if (
+        stateIndex > 1 &&
+        extended[stateIndex] !== 0 &&
+        extended[stateIndex] !== extended[stateIndex - 2]
+      ) {
+        value = logAdd(value, previous[stateIndex - 2]);
+      }
+      current[stateIndex] = value + logProb(logits, time, classes, extended[stateIndex]);
+    }
+    previous = current;
+  }
+
+  return logAdd(previous[extended.length - 1], previous[extended.length - 2]);
+}
+
+function charIndex(char) {
+  if (char >= "0" && char <= "9") return 33 + (char.charCodeAt(0) - 48);
+  if (char >= "A" && char <= "Z") return 43 + (char.charCodeAt(0) - 65);
+  return 0;
+}
+
+function logProb(logits, time, classes, classIndex) {
+  const offset = time * classes;
+  let max = Number.NEGATIVE_INFINITY;
+  for (let index = 0; index < classes; index += 1) {
+    const value = logits[offset + index];
+    if (value > max) max = value;
+  }
+  let sum = 0;
+  for (let index = 0; index < classes; index += 1) {
+    sum += Math.exp(logits[offset + index] - max);
+  }
+  return logits[offset + classIndex] - (max + Math.log(sum));
+}
+
+function logAdd(a, b) {
+  if (!Number.isFinite(a)) return b;
+  if (!Number.isFinite(b)) return a;
+  const max = Math.max(a, b);
+  return max + Math.log(Math.exp(a - max) + Math.exp(b - max));
 }
 
 function loadState() {
