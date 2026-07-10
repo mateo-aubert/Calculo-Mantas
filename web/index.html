@@ -31,8 +31,9 @@
         </div>
 
         <label class="label" for="imageInput">Foto de la hoja</label>
-        <input id="imageInput" class="file-input" type="file" accept="image/*" capture="environment" />
-        <p id="ocrStatus" class="status-text">El OCR web funciona mejor con buena luz y la columna bien recortada.</p>
+        <input id="imageInput" class="file-input visually-hidden" type="file" accept="image/*" capture="environment" />
+        <button id="pickImageButton" class="full scan-button" type="button">Tomar foto / importar hoja</button>
+        <p id="ocrStatus" class="status-text">Pulsa “Tomar foto / importar hoja”. En iPhone se abrirá la cámara o la galería.</p>
 
         <div id="scanWorkspace" class="scan-workspace hidden">
           <canvas id="scanCanvas" class="scan-canvas"></canvas>

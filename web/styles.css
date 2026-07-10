@@ -130,6 +130,18 @@ select {
   padding: 12px;
 }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .status-text,
 .hint {
   margin: 10px 0 0;
@@ -179,6 +191,11 @@ button.danger {
 button.full {
   width: 100%;
   margin-top: 14px;
+}
+
+.scan-button {
+  min-height: 58px;
+  font-size: 18px;
 }
 
 .actions,
