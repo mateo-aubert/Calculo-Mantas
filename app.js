@@ -67,6 +67,7 @@ const elements = {
   trackingList: document.querySelector("#trackingList"),
   resetDayButton: document.querySelector("#resetDayButton"),
   imageInput: document.querySelector("#imageInput"),
+  pickImageButton: document.querySelector("#pickImageButton"),
   ocrStatus: document.querySelector("#ocrStatus"),
   scanWorkspace: document.querySelector("#scanWorkspace"),
   scanCanvas: document.querySelector("#scanCanvas"),
@@ -120,6 +121,10 @@ function bindEvents() {
     state = { ...defaultState, draft: [] };
     persist();
     render();
+  });
+
+  elements.pickImageButton.addEventListener("click", () => {
+    elements.imageInput.click();
   });
 
   elements.imageInput.addEventListener("change", () => {
