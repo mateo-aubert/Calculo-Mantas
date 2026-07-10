@@ -9,3 +9,7 @@
 .cxx/
 app/build/
 .wrappergen/
+*.jks
+*.keystore
+release-keystore.properties
+release/
