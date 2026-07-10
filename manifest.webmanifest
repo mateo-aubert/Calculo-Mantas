@@ -1,0 +1,25 @@
+{
+  "name": "Cálculo Mantas",
+  "short_name": "Mantas",
+  "description": "PWA para calcular mantas y jaulas de aviones y bodegas.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F1F9FF",
+  "theme_color": "#071A2B",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
