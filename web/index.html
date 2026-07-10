@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#071A2B" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Mantas" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>Cálculo Mantas</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="icons/icon-192.svg" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div>
+        <p class="eyebrow">Mantero</p>
+        <h1>Cálculo Mantas</h1>
+      </div>
+      <button id="resetDayButton" class="ghost danger" type="button">Nueva jornada</button>
+    </header>
+
+    <main>
+      <section class="card">
+        <div class="section-title">
+          <div>
+            <h2>Salidas de la jornada</h2>
+            <p>Pega la lista de matrículas o añádelas una a una. Formatos válidos: EC-NFM y ECNFM.</p>
+          </div>
+        </div>
+
+        <label class="label" for="bulkInput">Pegar matrículas</label>
+        <textarea id="bulkInput" rows="4" placeholder="EC-MTI&#10;EC-NEI&#10;EC-ODI"></textarea>
+        <div class="actions">
+          <button id="loadBulkButton" type="button">Cargar lista</button>
+          <button id="exampleButton" class="secondary" type="button">Ejemplo</button>
+        </div>
+
+        <div class="manual-add">
+          <label class="label" for="addSelect">Añadir matrícula</label>
+          <div class="inline">
+            <select id="addSelect"></select>
+            <button id="addButton" class="secondary" type="button">Añadir</button>
+          </div>
+        </div>
+
+        <div id="draftList" class="draft-list" aria-live="polite"></div>
+        <button id="confirmButton" class="full" type="button">Confirmar cambios de salida</button>
+      </section>
+
+      <section id="summarySection" class="card hidden">
+        <div class="section-title">
+          <div>
+            <h2>Mantas necesarias</h2>
+            <p>Totales para salidas actuales, restante por vestir y cambios de salida.</p>
+          </div>
+        </div>
+
+        <p id="aircraftCount" class="count"></p>
+        <div id="changeImpact" class="notice hidden"></div>
+
+        <div class="grid">
+          <article class="summary-card">
+            <h3>Total salidas actuales</h3>
+            <dl id="totalBlankets"></dl>
+            <hr />
+            <dl id="totalCages"></dl>
+          </article>
+
+          <article class="summary-card emphasis">
+            <h3>Restante por vestir</h3>
+            <dl id="remainingBlankets"></dl>
+            <hr />
+            <dl id="remainingCages"></dl>
+          </article>
+        </div>
+      </section>
+
+      <section id="trackingSection" class="card hidden">
+        <div class="section-title">
+          <div>
+            <h2>Seguimiento</h2>
+            <p>Marca por separado cuando el avión y la bodega estén vestidos.</p>
+          </div>
+        </div>
+        <div id="trackingList" class="tracking-list"></div>
+      </section>
+    </main>
+
+    <template id="draftRowTemplate">
+      <div class="draft-row">
+        <select class="draft-select"></select>
+        <span class="badge"></span>
+        <button class="icon-button" type="button" aria-label="Eliminar matrícula">×</button>
+      </div>
+    </template>
+
+    <template id="trackingRowTemplate">
+      <div class="tracking-row">
+        <div>
+          <strong class="tracking-registration"></strong>
+          <span class="badge"></span>
+        </div>
+        <label><input class="aircraft-check" type="checkbox" /> Avión</label>
+        <label><input class="hold-check" type="checkbox" /> Bodega</label>
+      </div>
+    </template>
+
+    <script src="app.js" type="module"></script>
+  </body>
+</html>
