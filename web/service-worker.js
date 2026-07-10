@@ -1,4 +1,4 @@
-const CACHE_NAME = "calculo-mantas-pwa-v1";
+const CACHE_NAME = "calculo-mantas-pwa-v2";
 const ASSETS = [
   "./",
   "./index.html",
@@ -7,6 +7,7 @@ const ASSETS = [
   "./manifest.webmanifest",
   "./icons/icon-192.svg",
   "./icons/icon-512.svg",
+  "./models/ppocrv6_tiny_rec.onnx",
 ];
 
 self.addEventListener("install", (event) => {

@@ -25,6 +25,28 @@
       <section class="card">
         <div class="section-title">
           <div>
+            <h2>Escanear hoja</h2>
+            <p>Toma una foto o importa una imagen, marca la columna de matrículas y léela como en Android.</p>
+          </div>
+        </div>
+
+        <label class="label" for="imageInput">Foto de la hoja</label>
+        <input id="imageInput" class="file-input" type="file" accept="image/*" capture="environment" />
+        <p id="ocrStatus" class="status-text">El OCR web funciona mejor con buena luz y la columna bien recortada.</p>
+
+        <div id="scanWorkspace" class="scan-workspace hidden">
+          <canvas id="scanCanvas" class="scan-canvas"></canvas>
+          <p class="hint">Arrastra para marcar únicamente la columna donde aparecen las matrículas.</p>
+          <div class="actions">
+            <button id="readColumnButton" type="button">Leer matrículas</button>
+            <button id="clearImageButton" class="secondary" type="button">Quitar foto</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="section-title">
+          <div>
             <h2>Salidas de la jornada</h2>
             <p>Pega la lista de matrículas o añádelas una a una. Formatos válidos: EC-NFM y ECNFM.</p>
           </div>
@@ -107,6 +129,7 @@
       </div>
     </template>
 
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/ort.min.js"></script>
     <script src="app.js" type="module"></script>
   </body>
 </html>
